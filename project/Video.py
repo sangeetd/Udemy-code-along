@@ -34,7 +34,7 @@ def open_video():
                 #params (image source, start_coordinate, end_coordinate, color, rect_width)
                 cv2.rectangle(frame, (x, y), (x+w+10, y+h+10), rect_color, rect_stroke)
 
-            cv2.imshow("frame", frame)
+            cv2.imshow("frame ", frame)
             if cv2.waitKey(20) & 0xFF == ord('q'):
                 break
             # plt.imshow(frame_np)
