@@ -33,6 +33,7 @@ print(y_cat)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y_cat, test_size=0.2, random_state=42)
 
+print (type(X_train))
 print(X_train.shape)
 print(y_train.shape)
 
