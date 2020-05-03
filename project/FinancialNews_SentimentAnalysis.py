@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import project.Text_cleaning_techniques as textClean
 from tensorflow.keras.models import load_model
 from tensorflow.keras.callbacks import EarlyStopping
@@ -71,16 +72,6 @@ tokenizer = Tokenizer(num_words=max_vocab)
 tokenizer.fit_on_texts(X_processed)
 sequences = tokenizer.texts_to_sequences(X_processed)
 
-X_train, X_test, y_train, y_test = train_test_split(sequences, y_cat, test_size=0.3, random_state=42)
-
-print (type(X_train))
-print (len(X_train))
-print (X_train)
-
-print (type(y_train))
-print (len(y_train))
-print (y_train)
-
 print ('sequence : ------------')
 print (sequences)
 
@@ -94,23 +85,75 @@ print (word_index)
 print ('data : ------------')
 print (data)
 
+X_train, X_test, y_train, y_test = train_test_split(data, y_cat, test_size=0.3, random_state=42)
 
-print ('model creation : ')
-embedding_mat_columns=32
-model = Sequential()
-model.add(Embedding(input_dim=max_vocab,
-                    output_dim=embedding_mat_columns,
-                    input_length=max_length))
-model.add(LSTM(units=embedding_mat_columns, activation='relu'))
-model.add(Dense(3, activation='softmax'))
+print (type(X_train))
+print (len(X_train))
+print (X_train)
 
-model.compile(optimizer='adam', loss='categorical_crossentropy',
-              metrics=['acc'])
-model.summary()
+print (type(y_train))
+print (len(y_train))
+print (y_train)
 
-model.fit(X_train, y_train, epochs=20)
+def createModel():
+    print ('model creation : ')
+    embedding_mat_columns=64
+    model = Sequential()
+    model.add(Embedding(input_dim=max_vocab,
+                        output_dim=embedding_mat_columns,
+                        input_length=max_length))
+    model.add(LSTM(units=embedding_mat_columns, activation='relu'))
+    model.add(Dense(3, activation='softmax'))
 
-model.save('financialNews-Sentiment.h5')
+    model.compile(optimizer='adam', loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    model.summary()
 
-acc = model.evaluate(X_test, y_test)
-print("Test loss is {0:.2f} accuracy is {1:.2f}  ".format(acc[0],acc[1]))
+    model_history = model.fit(X_train, y_train, epochs=30,
+                              validation_data=(X_test, y_test))
+
+    # Plot training & validation accuracy values
+    plt.plot(model_history.history['accuracy'])
+    plt.plot(model_history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    # Plot training & validation loss values
+    plt.plot(model_history.history['loss'])
+    plt.plot(model_history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+
+    model.save('financialNews-Sentiment.h5')
+
+    acc = model.evaluate(X_test, y_test)
+    print("Test loss is {0:.2f} accuracy is {1:.2f}  ".format(acc[0],acc[1]))
+
+
+def prepareDataForTesting():
+    xtest = X_test[82]
+    xtest = xtest.reshape(1, max_length)
+    # print (xtest.reshape(1, max_length).shape)
+    ytest = y_test[82]
+    # print (xtest)
+    # print (ytest)
+    return xtest, ytest
+
+def doPrediction():
+    model = load_model('financialNews-Sentiment.h5')
+    xtest, ytest = prepareDataForTesting()
+    prediction = model.predict(xtest)
+    print ('prediction : ', prediction)
+
+
+# createModel()
+test1, y1 = prepareDataForTesting()
+print ('test1 : ', test1, ' y1 : ', y1)
+doPrediction()
